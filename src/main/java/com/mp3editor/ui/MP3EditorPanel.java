@@ -258,19 +258,55 @@ public class MP3EditorPanel extends JPanel {
         metadata.setAlbum(albumField.getText());
         metadata.setGenre(genreField.getText());
         metadata.setYear(yearField.getText());
+
+        String yearText = yearField.getText();
+        if (yearText != null && !yearText.isBlank()) {
+            String trimmedYear = yearText.trim();
+
+            // Регулярка: ровно 4 цифры
+            if (!trimmedYear.matches("\\d{4}")) {
+                JOptionPane.showMessageDialog(this,
+                        "Year must be a 4-digit number (e.g. 2024).",
+                        "Invalid year",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            int yearValue = Integer.parseInt(trimmedYear);
+
+            // Дополнительная логическая проверка диапазона
+            if (yearValue < 1400 || yearValue > 2099) {
+                JOptionPane.showMessageDialog(this,
+                        "Year must be between 1400 and 2099.",
+                        "Invalid year",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // если всё ок — записываем строковое значение в метаданные
+            metadata.setYear(trimmedYear);
+        } else {
+            metadata.setYear(null);
+        }
+
+
         metadata.setCoverArt(selectedCoverData);
 
         String bpmText = bpmField.getText();
         if (bpmText != null && !bpmText.isBlank()) {
-            try {
-                metadata.setBpm(Integer.parseInt(bpmText.trim()));
-            } catch (NumberFormatException e) {
+            String trimmed = bpmText.trim();
+
+            // Разрешаем только одну или больше цифр
+            if (!trimmed.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this,
-                        "BPM must be a number.",
+                        "BPM must contain digits only (0-9).",
                         "Invalid BPM",
                         JOptionPane.WARNING_MESSAGE);
                 return;
             }
+
+            // Здесь уже безопасно парсим, т.к. строка гарантированно только из цифр
+            metadata.setBpm(Integer.parseInt(trimmed));
         }
 
         // Просим пользователя выбрать, куда сохранить изменённый файл
