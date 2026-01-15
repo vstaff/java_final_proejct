@@ -21,6 +21,12 @@ import java.awt.GridBagLayout;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.LookAndFeel;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 
 public class MP3EditorPanel extends JPanel {
     private JButton chooseCoverButton;
@@ -155,14 +161,47 @@ public class MP3EditorPanel extends JPanel {
         return panel;
     }
 
+    /**
+     * Создаёт JFileChooser с родным Windows стилем.
+     * Меняет Look&Feel только для диалога выбора файлов.
+     */
+    private JFileChooser createNativeWindowsFileChooser() {
+        JFileChooser chooser = new JFileChooser();
+
+        LookAndFeel previousLookAndFeel = UIManager.getLookAndFeel();
+
+        try {
+            // Включаем системный (Windows) стиль
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            SwingUtilities.updateComponentTreeUI(chooser);
+        } catch (ClassNotFoundException |
+                 InstantiationException |
+                 IllegalAccessException |
+                 UnsupportedLookAndFeelException e) {
+            Logger.getLogger(MP3EditorPanel.class.getName())
+                    .log(Level.WARNING, "Cannot set native look and feel", e);
+        }
+
+        // Возвращаем LookAndFeel обратно для остального приложения
+        try {
+            UIManager.setLookAndFeel(previousLookAndFeel);
+        } catch (UnsupportedLookAndFeelException e) {
+            // Игнорируем, главное что диалог был красивый
+        }
+
+        return chooser;
+    }
+
+
 
     private void chooseCoverImage() {
-        JFileChooser fileChooser = new JFileChooser();
+        JFileChooser fileChooser = createNativeWindowsFileChooser();
         fileChooser.setDialogTitle("Choose cover image");
         fileChooser.setFileFilter(new FileNameExtensionFilter(
                 "Image files", "jpg", "jpeg", "png", "gif", "bmp"));
 
         int result = fileChooser.showOpenDialog(this);
+        // остальной код без изменений...
         if (result == JFileChooser.APPROVE_OPTION) {
             File imageFile = fileChooser.getSelectedFile();
             try {
@@ -193,8 +232,8 @@ public class MP3EditorPanel extends JPanel {
     }
 
     private void openFileChooserAndAddFiles() {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setMultiSelectionEnabled(true); // можно выбрать несколько файлов [web:21]
+        JFileChooser fileChooser = createNativeWindowsFileChooser();
+        fileChooser.setMultiSelectionEnabled(true);
         fileChooser.setFileFilter(new FileNameExtensionFilter("MP3 files", "mp3"));
 
         int result = fileChooser.showOpenDialog(this);
@@ -205,6 +244,7 @@ public class MP3EditorPanel extends JPanel {
             }
         }
     }
+
 
     private void removeSelectedFile() {
         File selected = fileList.getSelectedValue();
@@ -310,15 +350,12 @@ public class MP3EditorPanel extends JPanel {
         }
 
         // Просим пользователя выбрать, куда сохранить изменённый файл
-        JFileChooser fileChooser = new JFileChooser();
+        JFileChooser fileChooser = createNativeWindowsFileChooser();
         fileChooser.setDialogTitle("Save edited MP3");
+        fileChooser.setDialogType(JFileChooser.SAVE_DIALOG);
+        fileChooser.setFileFilter(new FileNameExtensionFilter("MP3 files", "mp3"));
         fileChooser.setSelectedFile(new File(selectedFile.getParentFile(),
                 addSuffixToFileName(selectedFile.getName(), "_edited")));
-
-        int result = fileChooser.showSaveDialog(this);
-        if (result != JFileChooser.APPROVE_OPTION) {
-            return;
-        }
 
         File outputFile = fileChooser.getSelectedFile();
 
