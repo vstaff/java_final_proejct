@@ -13,6 +13,19 @@ public class MP3Metadata {
     private String year;
     private Integer bpm;
 
+    // Добавь это поле в класс MP3Metadata
+    private byte[] coverArt; // сырые байты изображения для обложки
+
+    // Геттер и сеттер:
+    public byte[] getCoverArt() {
+        return coverArt;
+    }
+
+    public void setCoverArt(byte[] coverArt) {
+        this.coverArt = coverArt;
+    }
+
+
     public MP3Metadata() {
     }
 

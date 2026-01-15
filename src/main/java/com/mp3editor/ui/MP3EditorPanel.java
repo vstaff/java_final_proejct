@@ -23,6 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MP3EditorPanel extends JPanel {
+    private JButton chooseCoverButton;
+    private JLabel coverLabel;
+    private byte[] selectedCoverData;
+
 
     private final MP3TagService tagService = new MP3TagService();
 
@@ -116,17 +120,65 @@ public class MP3EditorPanel extends JPanel {
         addLabelAndField(panel, gbc, row++, "Year:", yearField);
         addLabelAndField(panel, gbc, row++, "BPM:", bpmField);
 
+        // Обложка
+        coverLabel = new JLabel("No cover selected");
+        chooseCoverButton = new JButton("Choose cover image");
+        chooseCoverButton.addActionListener(e -> chooseCoverImage());
+
+        // строка с надписью "Cover:" и кнопкой
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.gridwidth = 1;
+        panel.add(new JLabel("Cover:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = row;
+        gbc.gridwidth = 1;
+        panel.add(chooseCoverButton, gbc);
+
+        // следующая строка — label с текстом статуса
+        gbc.gridx = 0;
+        gbc.gridy = ++row;
+        gbc.gridwidth = 2;
+        panel.add(coverLabel, gbc);
+
+        // кнопка Save tags на СЛЕДУЮЩЕЙ строке
         saveButton = new JButton("Save tags");
         saveButton.addActionListener(e -> saveTagsForSelectedFile());
 
         gbc.gridx = 0;
-        gbc.gridy = row;
+        gbc.gridy = ++row;
         gbc.gridwidth = 2;
         gbc.weighty = 1.0;
         panel.add(saveButton, gbc);
 
         return panel;
     }
+
+
+    private void chooseCoverImage() {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Choose cover image");
+        fileChooser.setFileFilter(new FileNameExtensionFilter(
+                "Image files", "jpg", "jpeg", "png", "gif", "bmp"));
+
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File imageFile = fileChooser.getSelectedFile();
+            try {
+                selectedCoverData = java.nio.file.Files.readAllBytes(imageFile.toPath());
+                coverLabel.setText("Cover selected: " + imageFile.getName() +
+                        " (" + selectedCoverData.length + " bytes)");
+                coverLabel.setToolTipText("Click to preview"); // можно добавить превью позже
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Error reading image: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
 
     private void addLabelAndField(JPanel panel, GridBagConstraints gbc, int row, String labelText, JTextField field) {
         gbc.gridx = 0;
@@ -171,6 +223,16 @@ public class MP3EditorPanel extends JPanel {
             genreField.setText(metadata.getGenre());
             yearField.setText(metadata.getYear());
             bpmField.setText(metadata.getBpm() != null ? metadata.getBpm().toString() : "");
+
+            // Обложка
+            byte[] cover = metadata.getCoverArt();
+            if (cover != null && cover.length > 0) {
+                selectedCoverData = cover;
+                coverLabel.setText("Cover: " + cover.length + " bytes");
+            } else {
+                selectedCoverData = null;
+                coverLabel.setText("No cover");
+            }
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
                     "Error reading tags: " + ex.getMessage(),
@@ -196,6 +258,7 @@ public class MP3EditorPanel extends JPanel {
         metadata.setAlbum(albumField.getText());
         metadata.setGenre(genreField.getText());
         metadata.setYear(yearField.getText());
+        metadata.setCoverArt(selectedCoverData);
 
         String bpmText = bpmField.getText();
         if (bpmText != null && !bpmText.isBlank()) {
@@ -254,6 +317,8 @@ public class MP3EditorPanel extends JPanel {
         genreField.setText("");
         yearField.setText("");
         bpmField.setText("");
+        selectedCoverData = null;
+        coverLabel.setText("No cover selected");
     }
 
     /**

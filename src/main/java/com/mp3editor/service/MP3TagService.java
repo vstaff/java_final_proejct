@@ -40,6 +40,8 @@ public class MP3TagService {
             } catch (Exception ignored) {
                 metadata.setBpm(null);
             }
+            byte[] coverImageData = id3v2.getAlbumImage();
+            metadata.setCoverArt(coverImageData);
             return metadata;
         }
 
@@ -105,12 +107,34 @@ public class MP3TagService {
             id3v2Tag.setComment(comment.trim());
         }
 
+        // В методе writeMetadata() добавь перед сохранением:
+        if (metadata.getCoverArt() != null && metadata.getCoverArt().length > 0) {
+            String mimeType = detectMimeType(metadata.getCoverArt());
+            id3v2Tag.setAlbumImage(metadata.getCoverArt(), mimeType);
+        } else {
+            // Удаляем обложку если её нет
+            id3v2Tag.clearAlbumImage();
+        }
+
         // Дополнительно синхронизируем ID3v1 (если нужен)
         syncId3v1Tag(mp3File, metadata);
 
         // Сохраняем в новый файл
         mp3File.save(outputFile.getAbsolutePath());
     }
+
+    private String detectMimeType(byte[] imageData) {
+        if (imageData.length < 8) return "image/jpeg";
+
+        // Простое определение по сигнатуре
+        if (imageData[0] == (byte) 0xFF && imageData[1] == (byte) 0xD8) {
+            return "image/jpeg";
+        } else if (imageData[0] == (byte) 0x89 && imageData[1] == 'P') {
+            return "image/png";
+        }
+        return "image/jpeg"; // по умолчанию
+    }
+
 
     /**
      * Создаёт или обновляет ID3v1 тег, чтобы базовая информация была и в старом формате.
