@@ -13,17 +13,14 @@ public class MainFrame extends JFrame {
     public MainFrame() {
         super("MP3 Tag Editor");
 
-        // базовые настройки окна
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 600);
-        setLocationRelativeTo(null); // центрируем окно
+        setLocationRelativeTo(null);
 
-        // создаём основную панель редактора
         editorPanel = new MP3EditorPanel();
         setLayout(new BorderLayout());
         add(editorPanel, BorderLayout.CENTER);
 
-        // создаём простое меню (File -> Exit)
         setJMenuBar(createMenuBar());
     }
 

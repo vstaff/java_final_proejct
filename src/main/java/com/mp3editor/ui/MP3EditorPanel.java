@@ -161,17 +161,9 @@ public class MP3EditorPanel extends JPanel {
         return panel;
     }
 
-    /*
-     * Создаёт JFileChooser с родным Windows стилем.
-     * Меняет Look&Feel только для диалога выбора файлов.
-     */
-    /**
-     * Создаёт JFileChooser с родным Windows стилем.
-     * @param dialogType SAVE_DIALOG или OPEN_DIALOG
-     */
     private JFileChooser createNativeWindowsFileChooser(int dialogType) {
         JFileChooser chooser = new JFileChooser();
-        chooser.setDialogType(dialogType); // тип диалога (SAVE или OPEN)
+        chooser.setDialogType(dialogType);
 
         LookAndFeel previousLookAndFeel = UIManager.getLookAndFeel();
 
