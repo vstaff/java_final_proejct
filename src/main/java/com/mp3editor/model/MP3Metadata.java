@@ -1,9 +1,5 @@
 package com.mp3editor.model;
 
-/**
- * Простая модель для хранения метаданных трека.
- * Этот класс ничего не знает о mp3agic и файлах.
- */
 public class MP3Metadata {
 
     private String title;
@@ -13,10 +9,8 @@ public class MP3Metadata {
     private String year;
     private Integer bpm;
 
-    // Добавь это поле в класс MP3Metadata
-    private byte[] coverArt; // сырые байты изображения для обложки
+    private byte[] coverArt;
 
-    // Геттер и сеттер:
     public byte[] getCoverArt() {
         return coverArt;
     }
@@ -25,16 +19,10 @@ public class MP3Metadata {
         this.coverArt = coverArt;
     }
 
-
     public MP3Metadata() {
     }
 
-    public MP3Metadata(String title,
-                       String artist,
-                       String album,
-                       String genre,
-                       String year,
-                       Integer bpm) {
+    public MP3Metadata(String title, String artist, String album, String genre, String year, Integer bpm) {
         this.title = title;
         this.artist = artist;
         this.album = album;
